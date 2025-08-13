@@ -97,6 +97,7 @@
                     <i class="fa fa-print"></i>
 
                 </button>
+                <button type="button" class="cancel" tabindex="-1" ng-show="::canCloseVisit" ng-click="closeVisitIfDischarged()">{{ ::'REGISTRATION_LABEL_CLOSE_VISIT' | translate}}</button>
                 <div class="dashboard-date-picker" ng-controller="PatientListHeaderController">
                     <div class="retro-date-widget-wrapper fr">
                         <div class="retro-date-widget-header fr">
