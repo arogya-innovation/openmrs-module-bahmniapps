@@ -623,6 +623,23 @@ input[type="submit"].secondary-button:hover  {
   }
 }
 
+.btn--cancel {
+  border-radius: 3px;
+  background: linear-gradient(to bottom, #e74c3c, #c0392b);
+  background-color: #c0392b;
+  border: 1px solid #c0392b;
+  display: inline-block;
+  line-height: 1.2em;
+  color: #fff;
+  cursor: pointer;
+  min-width: 0;
+  max-width: 300px;
+  text-decoration: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  margin-left: 1px;
+}
+
 button.toggle{
   .fa-angle-up{
     display: none;

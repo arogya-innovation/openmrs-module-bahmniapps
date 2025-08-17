@@ -389,5 +389,11 @@
     "CDSS_ALERT_SAVE_ERROR": "A CDSS Critical Alert needs to be addressed in Medications Tab before continuing with Save operation",
     "CDSS_ACTION": "Please go to Medications Tab to take further action",
     "MEDICATION_PRINT": "Print",
-    "DAYS_ADMITTED_MESSAGE": "Days in hospital"
+    "DAYS_ADMITTED_MESSAGE": "Days in hospital",
+    "CLINICAL_LABEL_CLOSE_VISIT": "Close Visit",
+    "CLINICAL_VISIT_CANNOT_BE_CLOSED": "Admitted patient's visit cannot be closed. Discharge the patient and try again",
+    "CLOSE_VISIT_FAILED": "Failed to close visit",
+    "MODULE_LABEL_CLINICAL_KEY": "Clinical",
+    "CLINICAL_CONFIRM_CLOSE_VISIT": "Are you sure you want to close this visit?",
+    "CLOSE_VISIT": "Close Visit"
 }

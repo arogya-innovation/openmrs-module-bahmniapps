@@ -4,7 +4,12 @@ describe("ConsultationController", function () {
     var scope, rootScope, state, contextChangeHandler, urlHelper, location, clinicalAppConfigService,
         stateParams, appService, ngDialog, q, appDescriptor, controller, visitConfig, _window_, clinicalDashboardConfig,
         sessionService, conditionsService, encounterService, configurations, diagnosisService, messagingService, spinnerMock,
-        auditLogService,  confirmBox, virtualConsultService, adhocTeleconsultationService;
+        auditLogService, confirmBox, virtualConsultService, adhocTeleconsultationService, visitService;
+    
+    visitService = {
+      getVisitSummary: jasmine.createSpy("getVisitSummary"),
+      endVisit: jasmine.createSpy("endVisit"),
+    };
 
     var encounterData = {
         "bahmniDiagnoses": [],
@@ -146,7 +151,8 @@ describe("ConsultationController", function () {
             auditLogService: auditLogService,
             confirmBox: confirmBox,
             virtualConsultService: virtualConsultService,
-            adhocTeleconsultationService: adhocTeleconsultationService
+            adhocTeleconsultationService: adhocTeleconsultationService,
+            visitService: visitService
         });
     };
     var setUpServiceMocks = function () {
@@ -528,6 +534,118 @@ describe("ConsultationController", function () {
 
             expect(scope.shouldDisplaySaveConfirmDialogForStateChange).not.toHaveBeenCalled();
         });
+    });
+
+    describe("closeVisitIfDischarged()", function () {
+      var patientUuid = "patient-uuid-123";
+      var visitUuid = "visit-uuid-123";
+
+      beforeEach(function () {
+        scope.patient = { uuid: patientUuid };
+        scope.visitHistory = { activeVisit: { uuid: visitUuid } };
+        
+        _window_ = {
+          confirm: jasmine.createSpy("confirm"),
+          open: jasmine.createSpy("open"), // only needed if testing window.open
+        };
+      });
+
+      it("should show error when no active visit is found", function () {
+        scope.visitHistory.activeVisit = null;
+
+        createController();
+        scope.closeVisitIfDischarged();
+
+        expect(messagingService.showMessage).toHaveBeenCalledWith(
+          "error",
+          "No active visit found"
+        );
+      });
+
+      it("should block visit closure when dischargeDetails are missing", function (done) {
+        var visitSummary = { admissionDetails: {}, visitType: "IPD" };
+
+        visitService.getVisitSummary.and.returnValue(
+          Promise.resolve({ data: visitSummary })
+        );
+
+        createController();
+        scope.closeVisitIfDischarged();
+
+        setTimeout(() => {
+          expect(messagingService.showMessage).toHaveBeenCalledWith(
+            "error",
+            "CLINICAL_VISIT_CANNOT_BE_CLOSED"
+          );
+          expect(auditLogService.log).toHaveBeenCalledWith(
+            patientUuid,
+            "CLOSE_VISIT_FAILED",
+            {
+              visitUuid: visitUuid,
+              visitType: "IPD",
+            },
+            "MODULE_LABEL_CLINICAL_KEY"
+          );
+          done();
+        }, 0);
+      });
+
+      it("should close visit if dischargeDetails exist and user confirms", function (done) {
+        var visitSummary = {
+          admissionDetails: {},
+          dischargeDetails: {},
+          visitType: "IPD",
+        };
+
+        visitService.getVisitSummary.and.returnValue(
+          Promise.resolve({ data: visitSummary })
+        );
+        visitService.endVisit.and.returnValue(Promise.resolve());
+        _window_.confirm.and.returnValue(true);
+
+        spyOn(location, "url");
+
+        createController();
+        scope.closeVisitIfDischarged();
+
+        setTimeout(() => {
+          expect(visitService.endVisit).toHaveBeenCalledWith(visitUuid);
+          expect(location.url).toHaveBeenCalledWith(
+            Bahmni.Clinical.Constants.patientsListUrl
+          );
+          expect(auditLogService.log).toHaveBeenCalledWith(
+            patientUuid,
+            "CLOSE_VISIT",
+            {
+              visitUuid: visitUuid,
+              visitType: "IPD",
+            },
+            "MODULE_LABEL_CLINICAL_KEY"
+          );
+          done();
+        }, 0);
+      });
+
+      it("should not close visit if user cancels confirmation", function (done) {
+        var visitSummary = {
+          admissionDetails: {},
+          dischargeDetails: {},
+          visitType: "IPD",
+        };
+
+        visitService.getVisitSummary.and.returnValue(
+          Promise.resolve({ data: visitSummary })
+        );
+        _window_.confirm.and.returnValue(false);
+
+        createController();
+        scope.closeVisitIfDischarged();
+
+        setTimeout(() => {
+          expect(visitService.endVisit).not.toHaveBeenCalled();
+          done();
+        }, 0);
+      });
     });
 
     describe("open consultation", function () {

@@ -5,12 +5,12 @@ angular.module('bahmni.clinical').controller('ConsultationController',
         'spinner', 'encounterService', 'messagingService', 'sessionService', 'retrospectiveEntryService', 'patientContext', '$q',
         'patientVisitHistoryService', '$stateParams', '$window', 'visitHistory', 'clinicalDashboardConfig', 'appService',
         'ngDialog', '$filter', 'configurations', 'visitConfig', 'conditionsService', 'configurationService', 'auditLogService', 'confirmBox',
-        'virtualConsultService', 'adhocTeleconsultationService',
+        'virtualConsultService', 'adhocTeleconsultationService', 'visitService',
         function ($scope, $rootScope, $state, $location, $translate, clinicalAppConfigService, diagnosisService, urlHelper, contextChangeHandler,
                   spinner, encounterService, messagingService, sessionService, retrospectiveEntryService, patientContext, $q,
                   patientVisitHistoryService, $stateParams, $window, visitHistory, clinicalDashboardConfig, appService,
                   ngDialog, $filter, configurations, visitConfig, conditionsService, configurationService, auditLogService, confirmBox,
-                  virtualConsultService, adhocTeleconsultationService) {
+                  virtualConsultService, adhocTeleconsultationService, visitService) {
             var ERROR = 1;
             var DateUtil = Bahmni.Common.Util.DateUtil;
             var getPreviousActiveCondition = Bahmni.Common.Domain.Conditions.getPreviousActiveCondition;
@@ -47,6 +47,61 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                     $scope.$parent.$broadcast("event:switchDashboard", dashboard);
                 }
                 $scope.showDashboardMenu = false;
+            };
+
+            $scope.closeVisitIfDischarged = function () {
+                var visitUuid = $scope.visitHistory && $scope.visitHistory.activeVisit && $scope.visitHistory.activeVisit.uuid;
+
+                if (!visitUuid) {
+                    messagingService.showMessage("error", "No active visit found");
+                    return;
+                }
+
+                visitService.getVisitSummary(visitUuid).then(function (response) {
+                    var visitSummary = response.data;
+                    if (
+                        visitSummary.admissionDetails &&
+                  !visitSummary.dischargeDetails
+                    ) {
+                        messagingService.showMessage(
+                            "error",
+                            "CLINICAL_VISIT_CANNOT_BE_CLOSED"
+                        );
+                        var messageParams = {
+                            visitUuid: visitUuid,
+                            visitType: visitSummary.visitType
+                        };
+                        auditLogService.log(
+                            patientUuid,
+                            "CLOSE_VISIT_FAILED",
+                            messageParams,
+                            "MODULE_LABEL_CLINICAL_KEY"
+                        );
+                    } else {
+                        closeVisit(visitUuid, visitSummary.visitType);
+                    }
+                });
+            };
+
+            var closeVisit = function (visitUuid, visitType) {
+                var confirmed = $window.confirm(
+                    $translate.instant("CLINICAL_CONFIRM_CLOSE_VISIT")
+                );
+                if (confirmed) {
+                    visitService.endVisit(visitUuid).then(function () {
+                        $location.url(Bahmni.Clinical.Constants.patientsListUrl);
+                        var messageParams = {
+                            visitUuid: visitUuid,
+                            visitType: visitType
+                        };
+                        auditLogService.log(
+                            patientUuid,
+                            "CLOSE_VISIT",
+                            messageParams,
+                            "MODULE_LABEL_CLINICAL_KEY"
+                        );
+                    });
+                }
             };
 
             var setPrintAction = function (event, tab) {

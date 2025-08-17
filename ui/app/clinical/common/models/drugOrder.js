@@ -85,6 +85,24 @@ Bahmni.Clinical.DrugOrder = (function () {
 
         isActive: function () {
             return this.isActiveOnDate(DateUtil.today());
+        },
+        // Add your new method here:
+        getGujaratiDescription: function () {
+            // Get the concept and return its Gujarati name
+            if (this.drug && this.drug.dosageForm && this.drug.dosageForm.display) {
+                // Try to get Gujarati concept name
+                var concept = this.drug.dosageForm;
+                if (concept.names) {
+                    var gujaratiName = concept.names.find(function (name) { 
+                        return name.locale === 'gu'; 
+                    }); // 'gu' is Gujarati locale
+                    if (gujaratiName) {
+                        return gujaratiName.name;
+                    }
+                }
+            }
+            // Fallback to original description if Gujarati not found
+            return this.getDescription();
         }
     };
 

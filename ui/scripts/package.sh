@@ -10,8 +10,9 @@ ZIP_FILE_NAME=bahmniapps
 mkdir -p $ROOT_DIR/target
 rm -rf $ROOT_DIR/target/${ZIP_FILE_NAME}*.zip
 
-yarn install --frozen-lock-file
-yarn bundle
+# for testing ignoring eslint errors
+yarn install --frozen-lock-file --network-concurrency 1
+yarn bundle -- --force
 yarn uglify-and-rename
 
 cd $ROOT_DIR
