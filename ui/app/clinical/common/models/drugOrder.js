@@ -93,8 +93,8 @@ Bahmni.Clinical.DrugOrder = (function () {
                 // Try to get Gujarati concept name
                 var concept = this.drug.dosageForm;
                 if (concept.names) {
-                    var gujaratiName = concept.names.find(function (name) { 
-                        return name.locale === 'gu'; 
+                    var gujaratiName = concept.names.find(function (name) {
+                        return name.locale === 'gu';
                     }); // 'gu' is Gujarati locale
                     if (gujaratiName) {
                         return gujaratiName.name;

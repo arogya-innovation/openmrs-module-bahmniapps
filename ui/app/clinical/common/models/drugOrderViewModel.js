@@ -761,16 +761,15 @@ Bahmni.Clinical.DrugOrderViewModel.createFromContract = function (drugOrderRespo
     }
     return viewModel;
 };
-drugOrder.getGujaratiDescription = function() {
+drugOrder.getGujaratiDescription = function () {
     // Get the concept and return its Gujarati name
     if (this.drug && this.drug.dosageForm && this.drug.dosageForm.display) {
         // Try to get Gujarati concept name
-        var concept = this.drug.dosageForm;
-        if (concept.names) {
-            var gujaratiName = concept.names.find(name => name.locale === 'gu'); // 'gu' is Gujarati locale
-            if (gujaratiName) {
-                return gujaratiName.name;
-            }
+        var gujaratiName = concept.names.find(function (name) {
+            return name.locale === "gu";
+        });
+        if (gujaratiName) {
+            return gujaratiName.name;
         }
     }
     // Fallback to original description if Gujarati not found
