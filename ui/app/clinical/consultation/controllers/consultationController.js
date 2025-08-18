@@ -24,6 +24,9 @@ angular.module('bahmni.clinical').controller('ConsultationController',
             $scope.showComment = true;
             $scope.showSaveAndContinueButton = true;
 
+            $scope.patient = patientContext.patient;
+            var patientUuid = $scope.patient.uuid;
+
             $scope.visitHistory = visitHistory;
             $scope.consultationBoardLink = clinicalAppConfigService.getConsultationBoardLink();
             $scope.showControlPanel = false;
